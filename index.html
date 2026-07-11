@@ -289,7 +289,7 @@
             }
 
             games.forEach((game) => {
-                const faviconSrc = `https://www.google.com/s2/favicons?domain=${game.hostname}&sz=64`;
+                const faviconSrc = `https://icons.duckduckgo.com/ip3/${game.hostname}.ico`;
                 const item = document.createElement('div');
                 item.className = `game-item ${game.played ? 'played' : ''} ${isEditMode ? 'editing-row' : ''}`;
                 item.setAttribute('draggable', isEditMode ? 'true' : 'false');
