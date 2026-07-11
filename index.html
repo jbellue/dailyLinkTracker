@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Game Launcher</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --input-bg: #2b2b2b;
+            --text-main: #e0e0e0;
+            --text-dim: #888888;
+            --accent: #4caf50;
+            --btn-edit: #2196f3;
+            --danger: #cf6679;
+            --border-color: #333333;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 20px 10px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        h1 { font-size: 1.3rem; font-weight: 600; }
+
+        .mode-btn {
+            background-color: var(--btn-edit);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .mode-btn.editing { background-color: var(--accent); }
+
+        .edit-panel {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+            display: none;
+        }
+
+        body.mode-edit .edit-panel { display: block; }
+
+        .form-group { display: flex; flex-direction: column; gap: 10px; }
+        .input-row { display: flex; gap: 10px; }
+
+        input {
+            background-color: var(--input-bg);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            outline: none;
+            width: 100%;
+            user-select: text;
+        }
+
+        .add-btn {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .game-list { display: flex; flex-direction: column; gap: 8px; }
+
+        .game-item {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .game-item.played:not(.editing-row) { opacity: 0.5; }
+        .game-item.played:not(.editing-row) .game-title { text-decoration: line-through; color: var(--text-dim); }
+
+        .checkbox-container { display: flex; align-items: center; cursor: pointer; }
+        .custom-chk { width: 24px; height: 24px; border: 2px solid #555; border-radius: 6px; position: relative; }
+        .game-item.played .custom-chk { background-color: var(--accent); border-color: var(--accent); }
+        .game-item.played .custom-chk::after {
+            content: ''; position: absolute; left: 7px; top: 3px; width: 5px; height: 10px;
+            border: solid white; border-width: 0 2px 2px 0; transform: rotate(45deg);
+        }
+
+        .game-icon { width: 28px; height: 28px; border-radius: 6px; background-color: #2a2a2a; object-fit: contain; }
+        .game-info { flex-grow: 1; min-width: 0; }
+        .game-title { font-weight: 600; font-size: 0.95rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .game-meta { font-size: 0.75rem; color: var(--text-dim); }
+
+        .play-link {
+            background-color: #2a2a2a; color: var(--text-main); text-decoration: none;
+            padding: 8px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; border: 1px solid #3a3a3a;
+        }
+
+        .drag-handle { cursor: grab; color: var(--text-dim); font-size: 1.2rem; display: none; }
+        .row-actions { display: none; gap: 8px; }
+        .inline-btn { background: none; border: none; font-size: 1.1rem; cursor: pointer; padding: 4px; }
+        .inline-btn.edit { color: var(--btn-edit); }
+        .inline-btn.del { color: var(--danger); }
+
+        body.mode-edit .checkbox-container, body.mode-edit .play-link { display: none !important; }
+        body.mode-edit .drag-handle, body.mode-edit .row-actions { display: flex; }
+        .game-item.dragging { opacity: 0.4; border-style: dashed; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1 id="headerTitle">🎮 Game Rotation</h1>
+        <button id="modeBtn" class="mode-btn" onclick="toggleMode()">Edit Mode</button>
+    </header>
+
+    <div class="edit-panel">
+        <div class="form-group">
+            <input type="hidden" id="editId">
+            <input type="url" id="urlInput" placeholder="Paste Game URL (https://...)" required>
+            <div class="input-row">
+                <input type="text" id="nameInput" placeholder="Custom Name (Optional)">
+                <input type="time" id="timeInput" value="00:00" style="max-width: 120px;">
+            </div>
+            <button class="add-btn" id="submitBtn" onclick="handleSubmit()">＋ Add New Game</button>
+        </div>
+    </div>
+
+    <div class="game-list" id="gameContainer"></div>
+
+    <script>
+        let isEditMode = false;
+        let games = JSON.parse(localStorage.getItem('daily_games_rotation')) || [];
+
+        function processAutoResets() {
+            const now = new Date();
+            let stateChanged = false;
+
+            games = games.map(game => {
+                if (!game.played || !game.lastChecked) return game;
+
+                const lastCheckedDate = new Date(game.lastChecked);
+                const [resetHour, resetMin] = game.time.split(':').map(Number);
+                
+                let resetDeadline = new Date(now.getFullYear(), now.getMonth(), now.getDate(), resetHour, resetMin, 0);
+
+                if (now < resetDeadline) {
+                    resetDeadline.setDate(resetDeadline.getDate() - 1);
+                }
+
+                if (lastCheckedDate < resetDeadline) {
+                    stateChanged = true;
+                    return { ...game, played: false, lastChecked: null };
+                }
+                return game;
+            });
+
+            if (stateChanged) saveToStorage();
+        }
+
+        function toggleMode() {
+            isEditMode = !isEditMode;
+            document.body.classList.toggle('mode-edit', isEditMode);
+            const btn = document.getElementById('modeBtn');
+            btn.textContent = isEditMode ? 'Save & Exit' : 'Edit Mode';
+            btn.classList.toggle('editing', isEditMode);
+            document.getElementById('headerTitle').textContent = isEditMode ? '⚙️ Manage List' : '🎮 Game Rotation';
+            
+            if (!isEditMode) resetForm();
+            renderList();
+        }
+
+        function saveToStorage() {
+            localStorage.setItem('daily_games_rotation', JSON.stringify(games));
+        }
+
+        function handleSubmit() {
+            const urlIn = document.getElementById('urlInput');
+            const nameIn = document.getElementById('nameInput');
+            const timeIn = document.getElementById('timeInput');
+            const editIdIn = document.getElementById('editId');
+
+            let urlVal = urlIn.value.trim();
+            let nameVal = nameIn.value.trim();
+            let timeVal = timeIn.value || '00:00';
+
+            if (!urlVal) return alert('Please enter a game URL.');
+            if (!/^https?:\/\//i.test(urlVal)) urlVal = 'https://' + urlVal;
+
+            try {
+                const host = new URL(urlVal).hostname;
+                if (!nameVal) {
+                    let cleaned = host.replace('www.', '').split('.')[0];
+                    nameVal = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+                }
+
+                if (editIdIn.value) {
+                    const targetId = parseInt(editIdIn.value);
+                    games = games.map(g => g.id === targetId ? { ...g, name: nameVal, url: urlVal, hostname: host, time: timeVal } : g);
+                } else {
+                    games.push({ id: Date.now(), name: nameVal, url: urlVal, hostname: host, time: timeVal, played: false, lastChecked: null });
+                }
+
+                saveToStorage();
+                resetForm();
+                renderList();
+            } catch (e) {
+                alert('Invalid URL format.');
+            }
+        }
+
+        function resetForm() {
+            document.getElementById('urlInput').value = '';
+            document.getElementById('nameInput').value = '';
+            document.getElementById('timeInput').value = '00:00';
+            document.getElementById('editId').value = '';
+            document.getElementById('submitBtn').textContent = '＋ Add New Game';
+        }
+
+        function startInlineEdit(id) {
+            const game = games.find(g => g.id === id);
+            if (!game) return;
+
+            document.getElementById('urlInput').value = game.url;
+            document.getElementById('nameInput').value = game.name;
+            document.getElementById('timeInput').value = game.time;
+            document.getElementById('editId').value = game.id;
+            document.getElementById('submitBtn').textContent = '💾 Update Game Details';
+            document.getElementById('urlInput').focus();
+        }
+
+        function toggleCheck(id) {
+            games = games.map(g => g.id === id ? { ...g, played: !g.played, lastChecked: !g.played ? new Date().toISOString() : null } : g);
+            saveToStorage();
+            renderList();
+        }
+
+        function deleteGame(id) {
+            games = games.filter(g => g.id !== id);
+            saveToStorage();
+            if(document.getElementById('editId').value == id) resetForm();
+            renderList();
+        }
+
+        function handlePlayClick(id) {
+            setTimeout(() => {
+                games = games.map(g => g.id === id ? { ...g, played: true, lastChecked: new Date().toISOString() } : g);
+                saveToStorage();
+                renderList();
+            }, 300);
+        }
+
+        function renderList() {
+            processAutoResets();
+            const container = document.getElementById('gameContainer');
+            container.innerHTML = '';
+
+            if (games.length === 0) {
+                container.innerHTML = `<div style="text-align:center; padding:30px; color:var(--text-dim); font-size:0.9rem;">No games added. Tap Edit Mode to start setup!</div>`;
+                return;
+            }
+
+            games.forEach((game) => {
+                const faviconSrc = `https://www.google.com/s2/favicons?domain=${game.hostname}&sz=64`;
+                const item = document.createElement('div');
+                item.className = `game-item ${game.played ? 'played' : ''} ${isEditMode ? 'editing-row' : ''}`;
+                item.setAttribute('draggable', isEditMode ? 'true' : 'false');
+                item.setAttribute('data-id', game.id);
+
+                item.innerHTML = `
+                    <div class="drag-handle">☰</div>
+                    <div class="checkbox-container" onclick="toggleCheck(${game.id})"><span class="custom-chk"></span></div>
+                    <img class="game-icon" src="${faviconSrc}" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23888%22><rect width=%2224%22 height=%2224%22 rx=%224%22/></svg>'">
+                    <div class="game-info">
+                        <div class="game-title">${game.name}</div>
+                        <div class="game-meta">Resets at ${game.time}</div>
+                    </div>
+                    <a class="play-link" href="${game.url}" target="_blank" onclick="handlePlayClick(${game.id})">PLAY ↗</a>
+                    <div class="row-actions">
+                        <button class="inline-btn edit" onclick="startInlineEdit(${game.id})">✏️</button>
+                        <button class="inline-btn del" onclick="deleteGame(${game.id})">🗑️</button>
+                    </div>
+                `;
+
+                if (isEditMode) {
+                    item.addEventListener('dragstart', () => item.classList.add('dragging'));
+                    item.addEventListener('dragend', () => { item.classList.remove('dragging'); reorderArray(); });
+                }
+                container.appendChild(item);
+            });
+        }
+
+        const container = document.getElementById('gameContainer');
+        container.addEventListener('dragover', e => {
+            if (!isEditMode) return;
+            e.preventDefault();
+            const draggingElement = document.querySelector('.dragging');
+            const afterElement = [...container.querySelectorAll('.game-item:not(.dragging)')].reduce((closest, child) => {
+                const box = child.getBoundingClientRect();
+                const offset = e.clientY - box.top - box.height / 2;
+                return (offset < 0 && offset > closest.offset) ? { offset: offset, element: child } : closest;
+            }, { offset: Number.NEGATIVE_INFINITY }).element;
+
+            if (afterElement == null) container.appendChild(draggingElement);
+            else container.insertBefore(draggingElement, afterElement);
+        });
+
+        function reorderArray() {
+            games = [...document.querySelectorAll('.game-item')].map(row => games.find(g => g.id === parseInt(row.getAttribute('data-id')))).filter(Boolean);
+            saveToStorage();
+        }
+
+        renderList();
+    </script>
+</body>
+</html>
