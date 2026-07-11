@@ -8,7 +8,7 @@ A lightweight, self-contained mobile-first dashboard designed to manage your dai
 
 * **Zero Tracking:** No tracking cookies, no telemetry, no analytics, and no third-party scripts.
 * **100% Offline / Local:** Requires no server or backend database. It functions completely as a self-contained file.
-* **No External Network Calls:** Your game links, custom schedules, and click history never leave your device.
+* **Your Data is Yours Only:** Your game links, custom schedules, and click history never leave your device. The only external service is DuckDuckGo favicon API.
 
 ---
 
