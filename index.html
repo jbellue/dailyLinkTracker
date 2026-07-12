@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daily Game Launcher</title>
+    <title>Daily Link Launcher</title>
     <link rel="icon" type="image/svg+xml" href='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="22" fill="rgb(15,82,186)"/><text x="50%" y="55%" font-size="68" text-anchor="middle" dominant-baseline="middle" style="filter: drop-shadow(0px 0px 14px rgb(0,240,255))">🎮</text></svg>'>
     <style>
         :root {
@@ -139,8 +139,8 @@
 <body>
 
     <header>
-        <h1 id="headerTitle">🎮 Game Rotation</h1>
-        <button id="modeBtn" class="mode-btn" onclick="toggleMode()">Edit Mode</button>
+        <h1 id="headerTitle">🎮 Link Tracker</h1>
+        <button id="modeBtn" class="mode-btn" onclick="toggleMode()">✏️</button>
     </header>
 
     <div class="edit-panel">
@@ -151,7 +151,7 @@
                 <input type="text" id="nameInput" placeholder="Custom Name (Optional)">
                 <input type="time" id="timeInput" value="00:00" style="max-width: 120px;">
             </div>
-            <button class="add-btn" id="submitBtn" onclick="handleSubmit()">＋ Add New Game</button>
+            <button class="add-btn" id="submitBtn" onclick="handleSubmit()">＋ Add New Link</button>
         </div>
     </div>
 
@@ -191,9 +191,9 @@
             isEditMode = !isEditMode;
             document.body.classList.toggle('mode-edit', isEditMode);
             const btn = document.getElementById('modeBtn');
-            btn.textContent = isEditMode ? 'Save & Exit' : 'Edit Mode';
+            btn.textContent = isEditMode ? '💾' : '✏️';
             btn.classList.toggle('editing', isEditMode);
-            document.getElementById('headerTitle').textContent = isEditMode ? '⚙️ Manage List' : '🎮 Game Rotation';
+            document.getElementById('headerTitle').textContent = isEditMode ? '⚙️ Manage List' : '🎮 Link Tracker';
             
             if (!isEditMode) resetForm();
             renderList();
@@ -243,7 +243,7 @@
             document.getElementById('nameInput').value = '';
             document.getElementById('timeInput').value = '00:00';
             document.getElementById('editId').value = '';
-            document.getElementById('submitBtn').textContent = '＋ Add New Game';
+            document.getElementById('submitBtn').textContent = '＋ Add';
         }
 
         function startInlineEdit(id) {
@@ -254,7 +254,7 @@
             document.getElementById('nameInput').value = game.name;
             document.getElementById('timeInput').value = game.time;
             document.getElementById('editId').value = game.id;
-            document.getElementById('submitBtn').textContent = '💾 Update Game Details';
+            document.getElementById('submitBtn').textContent = '💾 Update Details';
             document.getElementById('urlInput').focus();
         }
 
@@ -304,7 +304,7 @@
                         <div class="game-title">${game.name}</div>
                         <div class="game-meta">Resets at ${game.time}</div>
                     </div>
-                    <a class="play-link" href="${game.url}" target="_blank" onclick="handlePlayClick(${game.id})">PLAY ↗</a>
+                    <a class="play-link" href="${game.url}" target="_blank" onclick="handlePlayClick(${game.id})">OPEN ↗</a>
                     <div class="row-actions">
                         <button class="inline-btn edit" onclick="startInlineEdit(${game.id})">✏️</button>
                         <button class="inline-btn del" onclick="deleteGame(${game.id})">🗑️</button>
