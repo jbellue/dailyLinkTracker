@@ -136,6 +136,7 @@
             background-color: #2a2a2a; color: var(--text-main); text-decoration: none;
             padding: 8px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; border: 1px solid #3a3a3a;
         }
+        .play-link.disabled { opacity: 0.45; pointer-events: none; cursor: not-allowed; }
 
         .drag-handle { cursor: grab; color: var(--text-dim); font-size: 1.2rem; display: none; }
         .row-actions { display: none; gap: 8px; }
@@ -406,11 +407,15 @@
                 const playLink = document.createElement('a');
                 playLink.className = 'play-link';
                 playLink.textContent = 'OPEN ↗';
-                playLink.target = '_blank';
-                playLink.rel = 'noopener noreferrer';
-                playLink.href = safeUrl;
                 if (safeUrl !== '#') {
+                    playLink.href = safeUrl;
+                    playLink.target = '_blank';
+                    playLink.rel = 'noopener noreferrer';
                     playLink.addEventListener('click', () => handlePlayClick(gameId));
+                } else {
+                    playLink.classList.add('disabled');
+                    playLink.setAttribute('aria-disabled', 'true');
+                    playLink.tabIndex = -1;
                 }
                 item.appendChild(playLink);
 
