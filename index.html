@@ -134,6 +134,7 @@
         .inline-btn { background: none; border: none; font-size: 1.1rem; cursor: pointer; padding: 4px; }
         .inline-btn.edit { color: var(--btn-edit); }
         .inline-btn.del { color: var(--danger); }
+        .empty-state { text-align: center; padding: 30px; color: var(--text-dim); font-size: 0.9rem; }
 
         body.mode-edit .checkbox-container, body.mode-edit .play-link { display: none !important; }
         body.mode-edit .drag-handle, body.mode-edit .row-actions { display: flex; }
@@ -244,9 +245,9 @@
 
                 if (editIdIn.value) {
                     const targetId = parseInt(editIdIn.value);
-                    games = games.map(g => g.id === targetId ? { ...g, name: nameVal, url: urlVal, hostname: host, time: timeVal } : g);
+                    games = games.map(g => g.id === targetId ? { ...g, name: nameVal, url: urlVal, time: timeVal } : g);
                 } else {
-                    games.push({ id: Date.now(), name: nameVal, url: urlVal, hostname: host, time: timeVal, played: false, lastChecked: null });
+                    games.push({ id: Date.now(), name: nameVal, url: urlVal, time: timeVal, played: false, lastChecked: null });
                 }
 
                 saveToStorage();
@@ -298,37 +299,111 @@
             }, 300);
         }
 
+        function normalizeExternalUrl(rawUrl) {
+            try {
+                const parsed = new URL(rawUrl);
+                if (parsed.protocol === 'http:' || parsed.protocol === 'https:') return parsed.toString();
+            } catch (e) {}
+            return '#';
+        }
+
         function renderList() {
             processAutoResets();
             const container = document.getElementById('gameContainer');
             container.innerHTML = '';
 
             if (games.length === 0) {
-                container.innerHTML = `<div style="text-align:center; padding:30px; color:var(--text-dim); font-size:0.9rem;">No link tracked.</div>`;
+                const empty = document.createElement('div');
+                empty.className = 'empty-state';
+                empty.textContent = 'No link tracked.';
+                container.appendChild(empty);
                 return;
             }
 
             games.forEach((game) => {
-                const faviconSrc = `https://icons.duckduckgo.com/ip3/${game.hostname}.ico`;
+                const gameId = Number(game.id);
+                if (!Number.isFinite(gameId)) return;
+
+                const safeUrl = normalizeExternalUrl(game.url);
+                let hostname = '';
+                if (safeUrl !== '#') {
+                    try {
+                        hostname = new URL(safeUrl).hostname;
+                    } catch (e) {}
+                }
+                const faviconSrc = hostname
+                    ? `https://icons.duckduckgo.com/ip3/${encodeURIComponent(hostname)}.ico`
+                    : 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23888%22><rect width=%2224%22 height=%2224%22 rx=%224%22/></svg>';
+                const displayName = typeof game.name === 'string' && game.name.trim() ? game.name : 'Untitled';
+                const displayTime = typeof game.time === 'string' ? game.time : '00:00';
+
                 const item = document.createElement('div');
                 item.className = `game-item ${game.played ? 'played' : ''} ${isEditMode ? 'editing-row' : ''}`;
                 item.setAttribute('draggable', isEditMode ? 'true' : 'false');
-                item.setAttribute('data-id', game.id);
+                item.setAttribute('data-id', String(gameId));
 
-                item.innerHTML = `
-                    <div class="drag-handle">☰</div>
-                    <div class="checkbox-container" onclick="toggleCheck(${game.id})"><span class="custom-chk"></span></div>
-                    <img class="game-icon" src="${faviconSrc}" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23888%22><rect width=%2224%22 height=%2224%22 rx=%224%22/></svg>'">
-                    <div class="game-info">
-                        <div class="game-title">${game.name}</div>
-                        <div class="game-meta">Resets at ${game.time}</div>
-                    </div>
-                    <a class="play-link" href="${game.url}" target="_blank" rel="noopener noreferrer" onclick="handlePlayClick(${game.id})">OPEN ↗</a>
-                    <div class="row-actions">
-                        <button class="inline-btn edit" onclick="startInlineEdit(${game.id})">✏️</button>
-                        <button class="inline-btn del" onclick="deleteGame(${game.id})">🗑️</button>
-                    </div>
-                `;
+                const dragHandle = document.createElement('div');
+                dragHandle.className = 'drag-handle';
+                dragHandle.textContent = '☰';
+                item.appendChild(dragHandle);
+
+                const checkboxContainer = document.createElement('div');
+                checkboxContainer.className = 'checkbox-container';
+                checkboxContainer.addEventListener('click', () => toggleCheck(gameId));
+                const customChk = document.createElement('span');
+                customChk.className = 'custom-chk';
+                checkboxContainer.appendChild(customChk);
+                item.appendChild(checkboxContainer);
+
+                const icon = document.createElement('img');
+                icon.className = 'game-icon';
+                icon.src = faviconSrc;
+                icon.alt = '';
+                icon.addEventListener('error', () => {
+                    icon.src = 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23888%22><rect width=%2224%22 height=%2224%22 rx=%224%22/></svg>';
+                });
+                item.appendChild(icon);
+
+                const gameInfo = document.createElement('div');
+                gameInfo.className = 'game-info';
+                const gameTitle = document.createElement('div');
+                gameTitle.className = 'game-title';
+                gameTitle.textContent = displayName;
+                const gameMeta = document.createElement('div');
+                gameMeta.className = 'game-meta';
+                gameMeta.textContent = `Resets at ${displayTime}`;
+                gameInfo.appendChild(gameTitle);
+                gameInfo.appendChild(gameMeta);
+                item.appendChild(gameInfo);
+
+                const playLink = document.createElement('a');
+                playLink.className = 'play-link';
+                playLink.textContent = 'OPEN ↗';
+                playLink.target = '_blank';
+                playLink.rel = 'noopener noreferrer';
+                playLink.href = safeUrl;
+                if (safeUrl !== '#') {
+                    playLink.addEventListener('click', () => handlePlayClick(gameId));
+                }
+                item.appendChild(playLink);
+
+                const rowActions = document.createElement('div');
+                rowActions.className = 'row-actions';
+                const editBtn = document.createElement('button');
+                editBtn.className = 'inline-btn edit';
+                editBtn.type = 'button';
+                editBtn.textContent = '✏️';
+                editBtn.addEventListener('click', () => startInlineEdit(gameId));
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'inline-btn del';
+                deleteBtn.type = 'button';
+                deleteBtn.textContent = '🗑️';
+                deleteBtn.addEventListener('click', () => deleteGame(gameId));
+
+                rowActions.appendChild(editBtn);
+                rowActions.appendChild(deleteBtn);
+                item.appendChild(rowActions);
 
                 if (isEditMode) {
                     item.addEventListener('dragstart', () => item.classList.add('dragging'));
