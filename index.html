@@ -164,7 +164,19 @@
 
     <script>
         let isEditMode = false;
-        let games = JSON.parse(localStorage.getItem('daily_games_rotation')) || [];
+
+        function loadGamesFromStorage() {
+            try {
+                const raw = localStorage.getItem('daily_games_rotation');
+                if (!raw) return [];
+                const parsed = JSON.parse(raw);
+                return Array.isArray(parsed) ? parsed : [];
+            } catch (e) {
+                return [];
+            }
+        }
+
+        let games = loadGamesFromStorage();
 
         function parseResetTime(timeValue) {
             const fallback = [0, 0];
