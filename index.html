@@ -418,6 +418,7 @@
             if (!isEditMode) return;
             e.preventDefault();
             const draggingElement = document.querySelector('.dragging');
+            if (!draggingElement) return;
             const afterElement = [...container.querySelectorAll('.game-item:not(.dragging)')].reduce((closest, child) => {
                 const box = child.getBoundingClientRect();
                 const offset = e.clientY - box.top - box.height / 2;
