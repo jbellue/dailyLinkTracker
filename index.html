@@ -111,7 +111,14 @@
         .game-item.played:not(.editing-row) { opacity: 0.5; }
         .game-item.played:not(.editing-row) .game-title { text-decoration: line-through; color: var(--text-dim); }
 
-        .checkbox-container { display: flex; align-items: center; cursor: pointer; }
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+        }
         .custom-chk { width: 24px; height: 24px; border: 2px solid #555; border-radius: 6px; position: relative; }
         .game-item.played .custom-chk { background-color: var(--accent); border-color: var(--accent); }
         .game-item.played .custom-chk::after {
@@ -145,7 +152,7 @@
 
     <header>
         <h1 id="headerTitle">🎮 Link Tracker</h1>
-        <button id="modeBtn" class="mode-btn" onclick="toggleMode()">✏️</button>
+        <button id="modeBtn" class="mode-btn" onclick="toggleMode()" aria-label="Enable edit mode" title="Enable edit mode">✏️</button>
     </header>
 
     <div class="edit-panel">
@@ -224,6 +231,9 @@
             document.body.classList.toggle('mode-edit', isEditMode);
             const btn = document.getElementById('modeBtn');
             btn.textContent = isEditMode ? '💾' : '✏️';
+            const buttonLabel = isEditMode ? 'Exit edit mode and save' : 'Enable edit mode';
+            btn.setAttribute('aria-label', buttonLabel);
+            btn.title = buttonLabel;
             btn.classList.toggle('editing', isEditMode);
             document.getElementById('headerTitle').textContent = isEditMode ? '⚙️ Manage List' : '🎮 Link Tracker';
             
@@ -359,8 +369,12 @@
                 dragHandle.textContent = '☰';
                 item.appendChild(dragHandle);
 
-                const checkboxContainer = document.createElement('div');
+                const checkboxContainer = document.createElement('button');
                 checkboxContainer.className = 'checkbox-container';
+                checkboxContainer.type = 'button';
+                checkboxContainer.setAttribute('role', 'checkbox');
+                checkboxContainer.setAttribute('aria-label', game.played ? 'Mark as not played' : 'Mark as played');
+                checkboxContainer.setAttribute('aria-checked', game.played ? 'true' : 'false');
                 checkboxContainer.addEventListener('click', () => toggleCheck(gameId));
                 const customChk = document.createElement('span');
                 customChk.className = 'custom-chk';
@@ -405,12 +419,14 @@
                 editBtn.className = 'inline-btn edit';
                 editBtn.type = 'button';
                 editBtn.textContent = '✏️';
+                editBtn.setAttribute('aria-label', `Edit ${displayName}`);
                 editBtn.addEventListener('click', () => startInlineEdit(gameId));
 
                 const deleteBtn = document.createElement('button');
                 deleteBtn.className = 'inline-btn del';
                 deleteBtn.type = 'button';
                 deleteBtn.textContent = '🗑️';
+                deleteBtn.setAttribute('aria-label', `Delete ${displayName}`);
                 deleteBtn.addEventListener('click', () => deleteGame(gameId));
 
                 rowActions.appendChild(editBtn);
