@@ -323,7 +323,7 @@
                         <div class="game-title">${game.name}</div>
                         <div class="game-meta">Resets at ${game.time}</div>
                     </div>
-                    <a class="play-link" href="${game.url}" target="_blank" onclick="handlePlayClick(${game.id})">OPEN ↗</a>
+                    <a class="play-link" href="${game.url}" target="_blank" rel="noopener noreferrer" onclick="handlePlayClick(${game.id})">OPEN ↗</a>
                     <div class="row-actions">
                         <button class="inline-btn edit" onclick="startInlineEdit(${game.id})">✏️</button>
                         <button class="inline-btn del" onclick="deleteGame(${game.id})">🗑️</button>
