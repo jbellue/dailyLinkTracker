@@ -116,15 +116,47 @@
             display: flex;
             align-items: center;
             cursor: pointer;
-            background: none;
-            border: none;
-            padding: 0;
         }
-        .custom-chk { width: 24px; height: 24px; border: 2px solid #555; border-radius: 6px; position: relative; }
-        .game-item.played .custom-chk { background-color: var(--accent); border-color: var(--accent); }
-        .game-item.played .custom-chk::after {
-            content: ''; position: absolute; left: 7px; top: 3px; width: 5px; height: 10px;
-            border: solid white; border-width: 0 2px 2px 0; transform: rotate(45deg);
+        .checkbox-input {
+            width: 22px;
+            height: 22px;
+            min-width: 22px;
+            min-height: 22px;
+            max-width: 22px;
+            max-height: 22px;
+            inline-size: 22px;
+            block-size: 22px;
+            flex-shrink: 0;
+            display: block;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            appearance: none;
+            -webkit-appearance: none;
+            border: 2px solid #5a5a5a;
+            border-radius: 6px;
+            background: #222;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+            transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+            cursor: pointer;
+        }
+
+        .checkbox-input:hover {
+            border-color: #6f6f6f;
+        }
+
+        .checkbox-input:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.35);
+        }
+
+        .checkbox-input:checked {
+            background-color: var(--accent);
+            border-color: var(--accent);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cpath d='M3 7.2l2.2 2.3L11 3.8' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: 14px 14px;
         }
 
         .game-icon { width: 28px; height: 28px; border-radius: 6px; background-color: #2a2a2a; object-fit: contain; }
@@ -371,16 +403,15 @@
                 dragHandle.textContent = '☰';
                 item.appendChild(dragHandle);
 
-                const checkboxContainer = document.createElement('button');
+                const checkboxContainer = document.createElement('div');
                 checkboxContainer.className = 'checkbox-container';
-                checkboxContainer.type = 'button';
-                checkboxContainer.setAttribute('role', 'checkbox');
-                checkboxContainer.setAttribute('aria-label', game.played ? 'Mark as not played' : 'Mark as played');
-                checkboxContainer.setAttribute('aria-checked', game.played ? 'true' : 'false');
-                checkboxContainer.addEventListener('click', () => toggleCheck(gameId));
-                const customChk = document.createElement('span');
-                customChk.className = 'custom-chk';
-                checkboxContainer.appendChild(customChk);
+                const checkboxInput = document.createElement('input');
+                checkboxInput.className = 'checkbox-input';
+                checkboxInput.type = 'checkbox';
+                checkboxInput.checked = Boolean(game.played);
+                checkboxInput.setAttribute('aria-label', game.played ? 'Mark as not played' : 'Mark as played');
+                checkboxInput.addEventListener('change', () => toggleCheck(gameId));
+                checkboxContainer.appendChild(checkboxInput);
                 item.appendChild(checkboxContainer);
 
                 const icon = document.createElement('img');
