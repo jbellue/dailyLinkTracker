@@ -165,6 +165,21 @@
         let isEditMode = false;
         let games = JSON.parse(localStorage.getItem('daily_games_rotation')) || [];
 
+        function parseResetTime(timeValue) {
+            const fallback = [0, 0];
+            if (typeof timeValue !== 'string') return fallback;
+
+            const match = timeValue.match(/^(\d{1,2}):(\d{2})$/);
+            if (!match) return fallback;
+
+            const hour = Number(match[1]);
+            const minute = Number(match[2]);
+            if (!Number.isInteger(hour) || !Number.isInteger(minute)) return fallback;
+            if (hour < 0 || hour > 23 || minute < 0 || minute > 59) return fallback;
+
+            return [hour, minute];
+        }
+
         function processAutoResets() {
             const now = new Date();
             let stateChanged = false;
@@ -173,7 +188,7 @@
                 if (!game.played || !game.lastChecked) return game;
 
                 const lastCheckedDate = new Date(game.lastChecked);
-                const [resetHour, resetMin] = game.time.split(':').map(Number);
+                const [resetHour, resetMin] = parseResetTime(game.time);
                 
                 let resetDeadline = new Date(now.getFullYear(), now.getMonth(), now.getDate(), resetHour, resetMin, 0);
 
