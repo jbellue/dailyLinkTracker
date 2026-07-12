@@ -155,7 +155,7 @@
                 <input type="text" id="nameInput" placeholder="Custom Name (Optional)">
                 <input type="time" id="timeInput" value="00:00" style="max-width: 120px;">
             </div>
-            <button class="add-btn" id="submitBtn" onclick="handleSubmit()">＋ Add New Link</button>
+            <button class="add-btn" id="submitBtn" onclick="handleSubmit()">＋ Add</button>
         </div>
     </div>
 
@@ -258,7 +258,7 @@
             document.getElementById('nameInput').value = game.name;
             document.getElementById('timeInput').value = game.time;
             document.getElementById('editId').value = game.id;
-            document.getElementById('submitBtn').textContent = '💾 Update Details';
+            document.getElementById('submitBtn').textContent = '💾 Update';
             document.getElementById('urlInput').focus();
         }
 
@@ -289,7 +289,7 @@
             container.innerHTML = '';
 
             if (games.length === 0) {
-                container.innerHTML = `<div style="text-align:center; padding:30px; color:var(--text-dim); font-size:0.9rem;">No games added. Tap Edit Mode to start setup!</div>`;
+                container.innerHTML = `<div style="text-align:center; padding:30px; color:var(--text-dim); font-size:0.9rem;">No link tracked.</div>`;
                 return;
             }
 
