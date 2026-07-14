@@ -107,14 +107,14 @@ input {
     height: 42px;
 }
 
-.game-list {
+.link-list {
     display: flex;
     flex-direction: column;
     gap: 8px;
     flex: 1;
 }
 
-.game-item {
+.link-item {
     background-color: var(--card-bg);
     border: 1px solid var(--border-color);
     border-radius: 12px;
@@ -124,11 +124,11 @@ input {
     gap: 12px;
 }
 
-.game-item.played:not(.editing-row) {
+.link-item.opened:not(.editing-row) {
     opacity: 0.5;
 }
 
-.game-item.played:not(.editing-row) .game-title {
+.link-item.opened:not(.editing-row) .link-title {
     text-decoration: line-through;
     color: var(--text-dim);
 }
@@ -181,7 +181,7 @@ input {
     background-size: 14px 14px;
 }
 
-.game-icon {
+.link-icon {
     width: 28px;
     height: 28px;
     border-radius: 6px;
@@ -189,12 +189,12 @@ input {
     object-fit: contain;
 }
 
-.game-info {
+.link-info {
     flex-grow: 1;
     min-width: 0;
 }
 
-.game-title {
+.link-title {
     font-weight: 600;
     font-size: 0.95rem;
     overflow: hidden;
@@ -202,12 +202,12 @@ input {
     white-space: nowrap;
 }
 
-.game-meta {
+.link-meta {
     font-size: 0.75rem;
     color: var(--text-dim);
 }
 
-.play-link {
+.open-link {
     background-color: #2a2a2a;
     color: var(--text-main);
     text-decoration: none;
@@ -218,7 +218,7 @@ input {
     border: 1px solid #3a3a3a;
 }
 
-.play-link.disabled {
+.open-link.disabled {
     opacity: 0.45;
     pointer-events: none;
     cursor: not-allowed;
@@ -260,7 +260,7 @@ input {
 }
 
 body.mode-edit .checkbox-container,
-body.mode-edit .play-link {
+body.mode-edit .open-link {
     display: none !important;
 }
 
@@ -269,7 +269,7 @@ body.mode-edit .row-actions {
     display: flex;
 }
 
-.game-item.dragging {
+.link-item.dragging {
     opacity: 0.4;
     border-style: dashed;
 }

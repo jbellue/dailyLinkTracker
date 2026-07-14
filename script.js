@@ -1,8 +1,8 @@
 let isEditMode = false;
 
-const loadGamesFromStorage = () => {
+const loadLinksFromStorage = () => {
     try {
-        const raw = localStorage.getItem('daily_games_rotation');
+        const raw = localStorage.getItem('daily_links_rotation');
         if (!raw) return [];
         const parsed = JSON.parse(raw);
         return Array.isArray(parsed) ? parsed : [];
@@ -11,7 +11,7 @@ const loadGamesFromStorage = () => {
     }
 };
 
-let games = loadGamesFromStorage();
+let links = loadLinksFromStorage();
 
 const parseResetTime = (timeValue) => {
     const fallback = [0, 0];
@@ -32,11 +32,11 @@ const processAutoResets = () => {
     const now = new Date();
     let stateChanged = false;
 
-    games = games.map(game => {
-        if (!game.played || !game.lastChecked) return game;
+    links = links.map(link => {
+        if (!link.opened || !link.lastChecked) return link;
 
-        const lastCheckedDate = new Date(game.lastChecked);
-        const [resetHour, resetMin] = parseResetTime(game.time);
+        const lastCheckedDate = new Date(link.lastChecked);
+        const [resetHour, resetMin] = parseResetTime(link.time);
         
         let resetDeadline = new Date(now.getFullYear(), now.getMonth(), now.getDate(), resetHour, resetMin, 0);
 
@@ -46,9 +46,9 @@ const processAutoResets = () => {
 
         if (lastCheckedDate < resetDeadline) {
             stateChanged = true;
-            return { ...game, played: false, lastChecked: null };
+            return { ...link, opened: false, lastChecked: null };
         }
-        return game;
+        return link;
     });
 
     if (stateChanged) saveToStorage();
@@ -67,10 +67,10 @@ const toggleMode = () => {
     
     if (!isEditMode) resetForm();
     renderList();
-}
+};
 
 const saveToStorage = () => {
-    localStorage.setItem('daily_games_rotation', JSON.stringify(games));
+    localStorage.setItem('daily_links_rotation', JSON.stringify(links));
 };
 
 const handleSubmit = () => {
@@ -83,7 +83,7 @@ const handleSubmit = () => {
     let nameVal = nameIn.value.trim();
     let timeVal = timeIn.value || '00:00';
 
-    if (!urlVal) return alert('Please enter a game URL.');
+    if (!urlVal) return alert('Please enter a link URL.');
     if (!/^https?:\/\//i.test(urlVal)) urlVal = 'https://' + urlVal;
 
     try {
@@ -95,9 +95,9 @@ const handleSubmit = () => {
 
         if (editIdIn.value) {
             const targetId = parseInt(editIdIn.value);
-            games = games.map(g => g.id === targetId ? { ...g, name: nameVal, url: urlVal, time: timeVal } : g);
+            links = links.map(l => l.id === targetId ? { ...l, name: nameVal, url: urlVal, time: timeVal } : l);
         } else {
-            games.push({ id: Date.now(), name: nameVal, url: urlVal, time: timeVal, played: false, lastChecked: null });
+            links.push({ id: Date.now(), name: nameVal, url: urlVal, time: timeVal, opened: false, lastChecked: null });
         }
 
         saveToStorage();
@@ -117,33 +117,33 @@ const resetForm = () => {
 };
 
 const startInlineEdit = (id) => {
-    const game = games.find(g => g.id === id);
-    if (!game) return;
+    const link = links.find(l => l.id === id);
+    if (!link) return;
 
-    document.getElementById('urlInput').value = game.url;
-    document.getElementById('nameInput').value = game.name;
-    document.getElementById('timeInput').value = game.time;
-    document.getElementById('editId').value = game.id;
+    document.getElementById('urlInput').value = link.url;
+    document.getElementById('nameInput').value = link.name;
+    document.getElementById('timeInput').value = link.time;
+    document.getElementById('editId').value = link.id;
     document.getElementById('submitBtn').textContent = '💾 Update';
     document.getElementById('urlInput').focus();
 };
 
 const toggleCheck = (id) => {
-    games = games.map(g => g.id === id ? { ...g, played: !g.played, lastChecked: !g.played ? new Date().toISOString() : null } : g);
+    links = links.map(l => l.id === id ? { ...l, opened: !l.opened, lastChecked: !l.opened ? new Date().toISOString() : null } : l);
     saveToStorage();
     renderList();
 };
 
-const deleteGame = (id) => {
-    games = games.filter(g => g.id !== id);
+const deleteLink = (id) => {
+    links = links.filter(l => l.id !== id);
     saveToStorage();
     if(document.getElementById('editId').value == id) resetForm();
     renderList();
 };
 
-const handlePlayClick = (id) => {
+const handleOpenClick = (id) => {
     setTimeout(() => {
-        games = games.map(g => g.id === id ? { ...g, played: true, lastChecked: new Date().toISOString() } : g);
+        links = links.map(l => l.id === id ? { ...l, opened: true, lastChecked: new Date().toISOString() } : l);
         saveToStorage();
         renderList();
     }, 300);
@@ -159,22 +159,22 @@ const normalizeExternalUrl = (rawUrl) => {
 
 const renderList = () => {
     processAutoResets();
-    const container = document.getElementById('gameContainer');
+    const container = document.getElementById('linkContainer');
     container.innerHTML = '';
 
-    if (games.length === 0) {
+    if (links.length === 0) {
         const empty = document.createElement('div');
         empty.className = 'empty-state';
-        empty.textContent = 'No link tracked.';
+        empty.textContent = 'No link tracked';
         container.appendChild(empty);
         return;
     }
 
-    games.forEach((game) => {
-        const gameId = Number(game.id);
-        if (!Number.isFinite(gameId)) return;
+    links.forEach((link) => {
+        const linkId = Number(link.id);
+        if (!Number.isFinite(linkId)) return;
 
-        const safeUrl = normalizeExternalUrl(game.url);
+        const safeUrl = normalizeExternalUrl(link.url);
         let hostname = '';
         if (safeUrl !== '#') {
             try {
@@ -184,13 +184,13 @@ const renderList = () => {
         const faviconSrc = hostname
             ? `https://icons.duckduckgo.com/ip3/${encodeURIComponent(hostname)}.ico`
             : 'data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23888%22><rect width=%2224%22 height=%2224%22 rx=%224%22/></svg>';
-        const displayName = typeof game.name === 'string' && game.name.trim() ? game.name : 'Untitled';
-        const displayTime = typeof game.time === 'string' ? game.time : '00:00';
+        const displayName = typeof link.name === 'string' && link.name.trim() ? link.name : 'Untitled';
+        const displayTime = typeof link.time === 'string' ? link.time : '00:00';
 
         const item = document.createElement('div');
-        item.className = `game-item ${game.played ? 'played' : ''} ${isEditMode ? 'editing-row' : ''}`;
+        item.className = `link-item ${link.opened ? 'opened' : ''} ${isEditMode ? 'editing-row' : ''}`;
         item.setAttribute('draggable', isEditMode ? 'true' : 'false');
-        item.setAttribute('data-id', String(gameId));
+        item.setAttribute('data-id', String(linkId));
 
         const dragHandle = document.createElement('div');
         dragHandle.className = 'drag-handle';
@@ -202,14 +202,14 @@ const renderList = () => {
         const checkboxInput = document.createElement('input');
         checkboxInput.className = 'checkbox-input';
         checkboxInput.type = 'checkbox';
-        checkboxInput.checked = Boolean(game.played);
-        checkboxInput.setAttribute('aria-label', game.played ? 'Mark as not played' : 'Mark as played');
-        checkboxInput.addEventListener('change', () => toggleCheck(gameId));
+        checkboxInput.checked = Boolean(link.opened);
+        checkboxInput.setAttribute('aria-label', link.opened ? 'Mark as not opened' : 'Mark as opened');
+        checkboxInput.addEventListener('change', () => toggleCheck(linkId));
         checkboxContainer.appendChild(checkboxInput);
         item.appendChild(checkboxContainer);
 
         const icon = document.createElement('img');
-        icon.className = 'game-icon';
+        icon.className = 'link-icon';
         icon.src = faviconSrc;
         icon.alt = '';
         icon.addEventListener('error', () => {
@@ -217,32 +217,32 @@ const renderList = () => {
         });
         item.appendChild(icon);
 
-        const gameInfo = document.createElement('div');
-        gameInfo.className = 'game-info';
-        const gameTitle = document.createElement('div');
-        gameTitle.className = 'game-title';
-        gameTitle.textContent = displayName;
-        const gameMeta = document.createElement('div');
-        gameMeta.className = 'game-meta';
-        gameMeta.textContent = `Resets at ${displayTime}`;
-        gameInfo.appendChild(gameTitle);
-        gameInfo.appendChild(gameMeta);
-        item.appendChild(gameInfo);
+        const linkInfo = document.createElement('div');
+        linkInfo.className = 'link-info';
+        const linkTitle = document.createElement('div');
+        linkTitle.className = 'link-title';
+        linkTitle.textContent = displayName;
+        const linkMeta = document.createElement('div');
+        linkMeta.className = 'link-meta';
+        linkMeta.textContent = `Resets at ${displayTime}`;
+        linkInfo.appendChild(linkTitle);
+        linkInfo.appendChild(linkMeta);
+        item.appendChild(linkInfo);
 
-        const playLink = document.createElement('a');
-        playLink.className = 'play-link';
-        playLink.textContent = 'OPEN ↗';
+        const openLink = document.createElement('a');
+        openLink.className = 'open-link';
+        openLink.textContent = 'OPEN ↗';
         if (safeUrl !== '#') {
-            playLink.href = safeUrl;
-            playLink.target = '_blank';
-            playLink.rel = 'noopener noreferrer';
-            playLink.addEventListener('click', () => handlePlayClick(gameId));
+            openLink.href = safeUrl;
+            openLink.target = '_blank';
+            openLink.rel = 'noopener noreferrer';
+            openLink.addEventListener('click', () => handleOpenClick(linkId));
         } else {
-            playLink.classList.add('disabled');
-            playLink.setAttribute('aria-disabled', 'true');
-            playLink.tabIndex = -1;
+            openLink.classList.add('disabled');
+            openLink.setAttribute('aria-disabled', 'true');
+            openLink.tabIndex = -1;
         }
-        item.appendChild(playLink);
+        item.appendChild(openLink);
 
         const rowActions = document.createElement('div');
         rowActions.className = 'row-actions';
@@ -251,14 +251,14 @@ const renderList = () => {
         editBtn.type = 'button';
         editBtn.textContent = '✏️';
         editBtn.setAttribute('aria-label', `Edit ${displayName}`);
-        editBtn.addEventListener('click', () => startInlineEdit(gameId));
+        editBtn.addEventListener('click', () => startInlineEdit(linkId));
 
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'inline-btn del';
         deleteBtn.type = 'button';
         deleteBtn.textContent = '🗑️';
         deleteBtn.setAttribute('aria-label', `Delete ${displayName}`);
-        deleteBtn.addEventListener('click', () => deleteGame(gameId));
+        deleteBtn.addEventListener('click', () => deleteLink(linkId));
 
         rowActions.appendChild(editBtn);
         rowActions.appendChild(deleteBtn);
@@ -273,7 +273,7 @@ const renderList = () => {
 };
 
 const reorderArray = () => {
-    games = [...document.querySelectorAll('.game-item')].map(row => games.find(g => g.id === parseInt(row.getAttribute('data-id')))).filter(Boolean);
+    links = [...document.querySelectorAll('.link-item')].map(row => links.find(g => g.id === parseInt(row.getAttribute('data-id')))).filter(Boolean);
     saveToStorage();
 };
 
@@ -313,14 +313,14 @@ const init = () => {
     }
 
     // Drag and drop on container
-    const container = document.getElementById('gameContainer');
+    const container = document.getElementById('linkContainer');
     if (container) {
         container.addEventListener('dragover', e => {
             if (!isEditMode) return;
             e.preventDefault();
             const draggingElement = document.querySelector('.dragging');
             if (!draggingElement) return;
-            const afterElement = [...container.querySelectorAll('.game-item:not(.dragging)')].reduce((closest, child) => {
+            const afterElement = [...container.querySelectorAll('.link-item:not(.dragging)')].reduce((closest, child) => {
                 const box = child.getBoundingClientRect();
                 const offset = e.clientY - box.top - box.height / 2;
                 return (offset < 0 && offset > closest.offset) ? { offset: offset, element: child } : closest;

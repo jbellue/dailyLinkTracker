@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daily Link Launcher</title>
+    <title>Daily Link Tracker</title>
     <link rel="icon" type="image/png" href="./favicon-96x96.png" sizes="96x96" />
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
     <link rel="shortcut icon" href="./favicon.ico" />
@@ -16,14 +16,14 @@
 <body>
 
     <header>
-        <h1 id="headerTitle">🎮 Link Tracker</h1>
+        <h1 id="headerTitle">🔗 Daily Link Tracker</h1>
         <button id="modeBtn" class="mode-btn" aria-label="Enable edit mode" title="Enable edit mode">✏️</button>
     </header>
 
     <div class="edit-panel">
         <div class="form-group">
             <input type="hidden" id="editId">
-            <input type="url" id="urlInput" placeholder="Paste Game URL (https://...)" required>
+            <input type="url" id="urlInput" placeholder="Paste URL (https://...)" required>
             <div class="input-row">
                 <input type="text" id="nameInput" placeholder="Custom Name (Optional)">
                 <input type="time" id="timeInput" value="00:00" style="max-width: 120px;">
@@ -32,7 +32,7 @@
         </div>
     </div>
 
-    <div class="game-list" id="gameContainer"></div>
+    <div class="link-list" id="linkContainer"></div>
 
     <footer class="footer">
         <a href="https://github.com/jbellue/dailyLinkTracker" target="_blank" rel="noopener noreferrer" class="github-link" title="View on GitHub">
