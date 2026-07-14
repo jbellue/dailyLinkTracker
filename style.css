@@ -1,0 +1,312 @@
+:root {
+    --bg-color: #121212;
+    --card-bg: #1e1e1e;
+    --input-bg: #2b2b2b;
+    --text-main: #e0e0e0;
+    --text-dim: #888888;
+    --accent: #4caf50;
+    --btn-edit: #2196f3;
+    --danger: #cf6679;
+    --border-color: #333333;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    padding: 20px 10px;
+    max-width: 500px;
+    margin: 0 auto;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+h1 {
+    font-size: 1.3rem;
+    font-weight: 600;
+}
+
+.mode-btn {
+    background-color: var(--btn-edit);
+    color: white;
+    border: none;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mode-btn.editing {
+    background-color: var(--accent);
+}
+
+.edit-panel {
+    background-color: var(--card-bg);
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 20px;
+    border: 1px solid var(--border-color);
+    display: none;
+}
+
+body.mode-edit .edit-panel {
+    display: block;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.input-row {
+    display: flex;
+    gap: 10px;
+}
+
+input {
+    background-color: var(--input-bg);
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    outline: none;
+    width: 100%;
+    user-select: text;
+}
+
+.add-btn {
+    background-color: var(--accent);
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    height: 42px;
+}
+
+.game-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+}
+
+.game-item {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.game-item.played:not(.editing-row) {
+    opacity: 0.5;
+}
+
+.game-item.played:not(.editing-row) .game-title {
+    text-decoration: line-through;
+    color: var(--text-dim);
+}
+
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.checkbox-input {
+    width: 22px;
+    height: 22px;
+    min-width: 22px;
+    min-height: 22px;
+    max-width: 22px;
+    max-height: 22px;
+    inline-size: 22px;
+    block-size: 22px;
+    flex-shrink: 0;
+    display: block;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    appearance: none;
+    -webkit-appearance: none;
+    border: 2px solid #5a5a5a;
+    border-radius: 6px;
+    background: #222;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+    transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+    cursor: pointer;
+}
+
+.checkbox-input:hover {
+    border-color: #6f6f6f;
+}
+
+.checkbox-input:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.35);
+}
+
+.checkbox-input:checked {
+    background-color: var(--accent);
+    border-color: var(--accent);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cpath d='M3 7.2l2.2 2.3L11 3.8' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 14px 14px;
+}
+
+.game-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background-color: #2a2a2a;
+    object-fit: contain;
+}
+
+.game-info {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.game-title {
+    font-weight: 600;
+    font-size: 0.95rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.game-meta {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+}
+
+.play-link {
+    background-color: #2a2a2a;
+    color: var(--text-main);
+    text-decoration: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: 1px solid #3a3a3a;
+}
+
+.play-link.disabled {
+    opacity: 0.45;
+    pointer-events: none;
+    cursor: not-allowed;
+}
+
+.drag-handle {
+    cursor: grab;
+    color: var(--text-dim);
+    font-size: 1.2rem;
+    display: none;
+}
+
+.row-actions {
+    display: none;
+    gap: 8px;
+}
+
+.inline-btn {
+    background: none;
+    border: none;
+    font-size: 1.1rem;
+    cursor: pointer;
+    padding: 4px;
+}
+
+.inline-btn.edit {
+    color: var(--btn-edit);
+}
+
+.inline-btn.del {
+    color: var(--danger);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 30px;
+    color: var(--text-dim);
+    font-size: 0.9rem;
+}
+
+body.mode-edit .checkbox-container,
+body.mode-edit .play-link {
+    display: none !important;
+}
+
+body.mode-edit .drag-handle,
+body.mode-edit .row-actions {
+    display: flex;
+}
+
+.game-item.dragging {
+    opacity: 0.4;
+    border-style: dashed;
+}
+
+.footer {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.github-link {
+    color: var(--text-dim);
+    text-decoration: none;
+    transition: color 0.2s, transform 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 8px;
+}
+
+.github-link:hover {
+    color: var(--text-main);
+    transform: scale(1.05);
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.github-link svg {
+    width: 24px;
+    height: 24px;
+    fill: currentColor;
+}
+
+.github-link span {
+    font-size: 0.85rem;
+    font-weight: 500;
+}
