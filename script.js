@@ -234,7 +234,7 @@ const renderList = () => {
         openLink.textContent = 'OPEN ↗';
         if (safeUrl !== '#') {
             openLink.href = safeUrl;
-            openLink.target = '_blank';
+            openLink.target = `LinkTracker_${linkId}`; // Reuse tab
             openLink.rel = 'noopener noreferrer';
             openLink.addEventListener('click', () => handleOpenClick(linkId));
         } else {
